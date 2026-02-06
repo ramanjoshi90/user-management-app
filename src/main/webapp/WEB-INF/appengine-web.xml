@@ -3,6 +3,12 @@
   <runtime>java17</runtime>
 
   <sessions-enabled>true</sessions-enabled>
+
+  <automatic-scaling>
+    <max-instances>1</max-instances> 
+    
+    <max-pending-latency>30ms</max-pending-latency>
+  </automatic-scaling>
   
   <env-variables>
     <env-var name="MY_ENV_VAR" value="some_value" />
