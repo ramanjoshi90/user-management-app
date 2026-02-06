@@ -48,7 +48,7 @@ A serverless Java application built on **Google App Engine Standard**, designed 
 ### Local Development
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/ramanjoshi90/user-management-app.git](https://github.com/ramanjoshi90/user-management-app.git)
+    git clone https://github.com/ramanjoshi90/user-management-app.git
     cd user-management-app
     ```
 
@@ -74,14 +74,15 @@ This project uses the `gcloud` CLI for deployment.
 
 ## 📂 Project Structure
 
+```text
 src/main/java/com/usermgmt/
 ├── model/
-│   └── User.java                 # POJO classes
+│   └── User.java             # POJO classes
 └── servlet/
-    ├── UploadServlet.java        # Handles Excel Parsing & Datastore Writes
-    ├── ListUsersServlet.java     # API for Listing & Deleting Users
-    ├── LoginServlet.java         # Authentication Logic
-    └── MigrationServlet.java     # ETL Logic (Datastore → BigQuery)
+    ├── UploadServlet.java    # Handles Excel Parsing & Datastore Writes
+    ├── ListUsersServlet.java # API for Listing & Deleting Users
+    ├── LoginServlet.java     # Authentication Logic
+    └── MigrationServlet.java # ETL Logic (Datastore -> BigQuery)
 
 ## 📝 Usage Guide
 
