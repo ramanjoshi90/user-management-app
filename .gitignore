@@ -1,0 +1,22 @@
+# Maven Build Artifacts
+target/
+*.war
+*.jar
+*.ear
+*.log
+
+# IDE Settings (VS Code, IntelliJ, Eclipse)
+.vscode/
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.DS_Store
+
+# Google App Engine Staging & Generated Files
+appengine-staging/
+WEB-INF/appengine-generated/
+
+# OS Generated Files
+Thumbs.db

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Directory</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .controls { margin-bottom: 20px; }
+        input[type="text"] { padding: 8px; width: 300px; }
+        .btn-delete { color: white; background-color: red; border: none; padding: 5px 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <h2>User Directory</h2>
+    
+    <div class="controls">
+        <input type="text" id="searchInput" placeholder="Search by Name or Email..." onkeyup="filterUsers()">
+        <button onclick="window.location.href='index.html'">Go to Upload</button>
+        <button onclick="window.location.href='migration.html'" style="background-color: #34A853;">Go to Migration</button>
+    </div>
+
+    <table id="userTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>DOB</th>
+                <th>Phone</th>
+                <th>Gender</th>
+                <th>Address</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            </tbody>
+    </table>
+
+    <script>
+        let allUsers = []; // Global variable to store data for filtering
+
+        // 1. Fetch Users on Page Load
+        window.onload = async function() {
+            try {
+                const response = await fetch('/api/users');
+                if (!response.ok) throw new Error("Failed to load users");
+                
+                allUsers = await response.json();
+                renderTable(allUsers);
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Could not load user data.");
+            }
+        };
+
+        // 2. Render Table Function
+        function renderTable(users) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = ""; // Clear existing rows
+
+            users.forEach(user => {
+                const row = `
+                    <tr>
+                        <td>${user.name}</td>
+                        <td>${user.email}</td>
+                        <td>${user.dob}</td>
+                        <td>${user.phone}</td>
+                        <td>${user.gender}</td>
+                        <td>${user.address}</td>
+                        <td>
+                            <button class="btn-delete" onclick="deleteUser('${user.email}')">Delete</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        // 3. Native JS Search / Filter Logic
+        function filterUsers() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            
+            const filtered = allUsers.filter(user => 
+                user.name.toLowerCase().includes(query) || 
+                user.email.toLowerCase().includes(query)
+            );
+            
+            renderTable(filtered); // Re-render only filtered data
+        }
+
+        // 4. Delete Functionality
+        async function deleteUser(email) {
+            if(!confirm("Are you sure you want to delete " + email + "?")) return;
+
+            try {
+                const response = await fetch('/api/users?email=' + encodeURIComponent(email), {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    // Remove from local array and re-render (avoids page reload)
+                    allUsers = allUsers.filter(u => u.email !== email);
+                    renderTable(allUsers);
+                } else {
+                    alert("Failed to delete user.");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+    </script>
+</body>
+</html>

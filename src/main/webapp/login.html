@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .login-box { border: 1px solid #ccc; padding: 30px; border-radius: 5px; width: 300px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background-color: #4285F4; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h3>Login</h3>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button onclick="login()">Sign In</button>
+        <p id="msg" style="color:red; text-align:center;"></p>
+    </div>
+
+    <script>
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            const params = new URLSearchParams();
+            params.append('email', email);
+            params.append('password', password);
+
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                body: params
+            });
+
+            if (response.ok) {
+                window.location.href = "users.html"; // Redirect on success
+            } else {
+                document.getElementById('msg').innerText = "Invalid Credentials";
+            }
+        }
+    </script>
+</body>
+</html>

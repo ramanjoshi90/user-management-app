@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BigQuery Migration</title>
+    <style>
+        body { font-family: sans-serif; padding: 40px; text-align: center; }
+        .card { 
+            border: 1px solid #ddd; padding: 40px; 
+            max-width: 500px; margin: auto; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+        }
+        h2 { color: #4285F4; }
+        p { color: #666; }
+        button { 
+            padding: 15px 30px; font-size: 16px; 
+            background-color: #34A853; color: white; 
+            border: none; cursor: pointer; border-radius: 4px;
+        }
+        button:hover { background-color: #2e8b46; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        #status { margin-top: 20px; font-weight: bold; }
+        .back-link { display: block; margin-top: 20px; text-decoration: none; color: #4285F4; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Milestone 2: Data Migration</h2>
+        <p>Move all user records from Google Datastore (NoSQL) to BigQuery (Data Warehouse).</p>
+        
+        <br>
+        <button id="migrateBtn" onclick="startMigration()">Start Migration</button>
+        <p id="status"></p>
+    </div>
+
+    <a href="users.html" class="back-link">Back to User Directory</a>
+
+    <script>
+        async function startMigration() {
+            const btn = document.getElementById('migrateBtn');
+            const status = document.getElementById('status');
+            
+            btn.disabled = true;
+            status.innerText = "Migration in progress... (This may take a few seconds)";
+            status.style.color = "black";
+
+            try {
+                const response = await fetch('/api/migrate', { method: 'POST' });
+                const text = await response.text();
+
+                if (response.ok) {
+                    status.innerText = text;
+                    status.style.color = "green";
+                } else {
+                    status.innerText = "Error: " + text;
+                    status.style.color = "red";
+                }
+            } catch (err) {
+                status.innerText = "Network Error: " + err;
+                status.style.color = "red";
+            } finally {
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
