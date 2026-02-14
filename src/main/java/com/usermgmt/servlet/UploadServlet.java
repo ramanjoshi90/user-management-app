@@ -1,6 +1,9 @@
 package com.usermgmt.servlet;
 
 import com.google.cloud.datastore.*;
+
+import com.usermgmt.util.PasswordUtil;
+
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -24,21 +27,37 @@ public class UploadServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // 1. SECURITY CHECK: Verify Admin Key
+        String secret = System.getenv("ADMIN_SECRET");
+        String requestKey = req.getHeader("X-Admin-Key");
+
+        // If secret is set in config, strict check is required
+        if (secret == null || requestKey == null || !secret.trim().equals(requestKey.trim())) {
+            // Set the 403 status code manually
+            resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            // Send a clean, plain-text response (no HTML tags)
+            resp.getWriter().write("Access Denied: Invalid Admin Key");
+            return; // Stop execution
+        }
+
         Part filePart = req.getPart("file"); // Matches HTML input name="file"
         InputStream fileContent = filePart.getInputStream();
 
         List<Entity> userEntities = new ArrayList<>();
-        KeyFactory keyFactory = datastore.newKeyFactory().setKind("User");
+        String kind = System.getenv("DATASTORE_KIND");
+        KeyFactory keyFactory = datastore.newKeyFactory().setKind(kind);
 
         try (Workbook workbook = new XSSFWorkbook(fileContent)) {
             Sheet sheet = workbook.getSheetAt(0);
-            
+
             // Iterate rows (Skip header row 0)
             for (Row row : sheet) {
-                if (row.getRowNum() == 0) continue; 
+                if (row.getRowNum() == 0)
+                    continue;
 
-                // Basic parsing (Assuming strict column order: Name, DOB, Email, Password, Phone, Gender, Address)
-                
+                // Basic parsing (Assuming strict column order: Name, DOB, Email, Password,
+                // Phone, Gender, Address)
+
                 String name = getCellValue(row.getCell(0));
                 String dob = getCellValue(row.getCell(1));
                 String email = getCellValue(row.getCell(2));
@@ -47,7 +66,8 @@ public class UploadServlet extends HttpServlet {
                 String gender = getCellValue(row.getCell(5));
                 String address = getCellValue(row.getCell(6));
 
-                if (email == null || email.isEmpty()) continue;
+                if (email == null || email.isEmpty())
+                    continue;
 
                 // Create Datastore Entity
                 // We use Email as the Key (Primary Key) so duplicates overwrite
@@ -56,12 +76,12 @@ public class UploadServlet extends HttpServlet {
                         .set("name", name)
                         .set("dob", dob)
                         .set("email", email)
-                        .set("password", password)
+                        .set("password", PasswordUtil.hashPassword(password))
                         .set("phone", phone)
                         .set("gender", gender)
                         .set("address", address)
                         .build();
-                
+
                 userEntities.add(entity);
             }
         } catch (Exception e) {
@@ -79,11 +99,15 @@ public class UploadServlet extends HttpServlet {
 
     // Helper to handle different cell types (String vs Numeric)
     private String getCellValue(Cell cell) {
-        if (cell == null) return "";
+        if (cell == null)
+            return "";
         switch (cell.getCellType()) {
-            case STRING: return cell.getStringCellValue();
-            case NUMERIC: return String.valueOf((long) cell.getNumericCellValue()); // Cast to long to avoid 1.0
-            default: return "";
+            case STRING:
+                return cell.getStringCellValue();
+            case NUMERIC:
+                return String.valueOf((long) cell.getNumericCellValue()); // Cast to long to avoid 1.0
+            default:
+                return "";
         }
     }
 }

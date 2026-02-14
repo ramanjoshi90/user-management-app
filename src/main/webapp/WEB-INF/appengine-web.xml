@@ -11,6 +11,9 @@
   </automatic-scaling>
   
   <env-variables>
-    <env-var name="MY_ENV_VAR" value="some_value" />
+    <env-var name="DATASTORE_KIND" value="User" />
+    <env-var name="BIGQUERY_DATASET" value="user_backup" />
+    <env-var name="BIGQUERY_TABLE" value="users" />
+    <env-var name="ADMIN_SECRET" value="my-super-secret-key-2026" />
   </env-variables>
 </appengine-web-app>

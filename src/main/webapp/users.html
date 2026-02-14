@@ -1,25 +1,59 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>User Directory</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .controls { margin-bottom: 20px; }
-        input[type="text"] { padding: 8px; width: 300px; }
-        .btn-delete { color: white; background-color: red; border: none; padding: 5px 10px; cursor: pointer; }
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            padding: 8px;
+            width: 300px;
+        }
+
+        .btn-delete {
+            color: white;
+            background-color: red;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
     </style>
 </head>
+
 <body>
 
     <h2>User Directory</h2>
-    
+
     <div class="controls">
         <input type="text" id="searchInput" placeholder="Search by Name or Email..." onkeyup="filterUsers()">
         <button onclick="window.location.href='index.html'">Go to Upload</button>
-        <button onclick="window.location.href='migration.html'" style="background-color: #34A853;">Go to Migration</button>
+        <button onclick="window.location.href='migration.html'" style="background-color: #34A853;">Go to
+            Migration</button>
     </div>
 
     <table id="userTable">
@@ -35,25 +69,63 @@
             </tr>
         </thead>
         <tbody id="tableBody">
-            </tbody>
+        </tbody>
     </table>
+    <div style="text-align: center; margin-top: 20px;">
+        <button id="loadMoreBtn" onclick="loadNextPage()" style="display: none; padding: 10px 20px;">Load More
+            Users</button>
+    </div>
 
     <script>
-        let allUsers = []; // Global variable to store data for filtering
+        let allUsers = [];
+        let nextCursor = null; // Store the magic string
 
-        // 1. Fetch Users on Page Load
-        window.onload = async function() {
-            try {
-                const response = await fetch('/api/users');
-                if (!response.ok) throw new Error("Failed to load users");
-                
-                allUsers = await response.json();
-                renderTable(allUsers);
-            } catch (error) {
-                console.error("Error:", error);
-                alert("Could not load user data.");
-            }
+        // 1. Initial Load
+        window.onload = function () {
+            loadNextPage(); // Load the first page
         };
+
+        // 2. Fetch Function (Refactored)
+        async function loadNextPage() {
+            const btn = document.getElementById('loadMoreBtn');
+            btn.innerText = "Loading...";
+            btn.disabled = true;
+
+            try {
+                // Build URL with cursor if we have one
+                let url = '/api/users';
+                if (nextCursor) {
+                    url += '?cursor=' + encodeURIComponent(nextCursor);
+                }
+
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Failed to load");
+
+                const data = await response.json(); // format: { users: [], nextCursor: "..." }
+
+                // Append new users to our global list
+                allUsers = allUsers.concat(data.users);
+
+                // Render the WHOLE list (or just append rows if you want to be fancy)
+                renderTable(allUsers);
+
+                // Update Cursor for next time
+                nextCursor = data.nextCursor;
+
+                // Show/Hide Button based on if more data exists
+                if (data.users.length > 0 && nextCursor) {
+                    btn.style.display = 'inline-block';
+                    btn.innerText = "Load More Users";
+                    btn.disabled = false;
+                } else {
+                    btn.style.display = 'none'; // No more data
+                }
+
+            } catch (error) {
+                console.error(error);
+                alert("Error loading users.");
+            }
+        }
 
         // 2. Render Table Function
         function renderTable(users) {
@@ -81,18 +153,18 @@
         // 3. Native JS Search / Filter Logic
         function filterUsers() {
             const query = document.getElementById('searchInput').value.toLowerCase();
-            
-            const filtered = allUsers.filter(user => 
-                user.name.toLowerCase().includes(query) || 
+
+            const filtered = allUsers.filter(user =>
+                user.name.toLowerCase().includes(query) ||
                 user.email.toLowerCase().includes(query)
             );
-            
+
             renderTable(filtered); // Re-render only filtered data
         }
 
         // 4. Delete Functionality
         async function deleteUser(email) {
-            if(!confirm("Are you sure you want to delete " + email + "?")) return;
+            if (!confirm("Are you sure you want to delete " + email + "?")) return;
 
             try {
                 const response = await fetch('/api/users?email=' + encodeURIComponent(email), {
@@ -112,4 +184,5 @@
         }
     </script>
 </body>
+
 </html>
